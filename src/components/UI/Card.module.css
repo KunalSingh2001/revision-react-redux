@@ -6,3 +6,13 @@
   width: 90%;
   max-width: 40rem;
 }
+
+.success {
+  background-color: #4caf50; /* green */
+  color: white;
+}
+
+.error {
+  background-color: #f44336; /* red */
+  color: white;
+}
