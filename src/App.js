@@ -1,16 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Cart from './components/Cart/Cart';
-import Card from './components/UI/Card';
 import Layout from './components/Layout/Layout';
 import Products from './components/Shop/Products';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { cartActions } from './components/Redux/cart';
+import Notification from './components/UI/Notification';
 function App() {
 	const isShow = useSelector((state) => state.cart.cartToggle);
 	const cartItems = useSelector((state) => state.cart.carts);
-	const [showSuccess, setShowSuccess] = useState(false);
-	const [showError, setShowError] = useState(false)
+	const notification = useSelector((state) => state.cart.notification);
+	const dispatch = useDispatch((state) => state.carte)
 	useEffect(() => {
 		const sendCartData = async () => {
+			dispatch(cartActions.showNotification({
+				message: "Pending...",
+				type: "pending"
+			}))
 			try {
 				const res = await fetch(
 					"https://e-commerce-project-2-4807f-default-rtdb.firebaseio.com/carts.json",
@@ -25,37 +30,38 @@ function App() {
 					throw new Error("Request failed!");
 				}
 
-				console.log("response is ok");
-				setShowSuccess(true);
-				setShowError(false);
-
-				setTimeout(() => {
-					setShowSuccess(false);
-				}, 3000);
+				dispatch(cartActions.showNotification({
+					message: "Successfully sent",
+					type: "success"
+				}))
 			} catch (error) {
 				console.error(error);
-				setShowError(true);
-				setShowSuccess(false);
-
-				setTimeout(() => {
-					setShowError(false);
-				}, 3000);
+				dispatch(cartActions.showNotification({
+					message: "Something went wrong!",
+					type: "error"
+				}))
 			}
+
+			setTimeout(() => {
+				dispatch(cartActions.clearNotification());
+			}, 3000);
 		};
 
 		if (cartItems.length > 0) {
 			sendCartData();
 		}
-	}, [cartItems]);
+	}, [cartItems, dispatch]);
 
 
 	return (
 		<Layout>
-			{showSuccess && <Card className="success">Cart saved successfully ✅</Card>}
-			{showError && <Card className="error">Something went wrong ❌</Card>}
-			{isShow &&
-				<Cart />
-			}
+			{notification && (
+				<Notification
+					status={notification.type}
+					message={notification.message}
+				/>
+			)}
+			{isShow && <Cart />}
 			<Products />
 		</Layout>
 	);
